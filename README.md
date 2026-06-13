@@ -1,9 +1,6 @@
 # Quanta Talent
 
-Quanta Talent is a Next.js take-home project for an elite venture talent
-community. Visitors request to join, confirm their email address, and enter a
-pipeline where the Quanta team can review confirmed people, search by talent
-signals, enrich profiles from public sources, and send outreach.
+Quanta Talent is a Next.js project built for Quata Ventures as a way to find and analyze extremely talented people.
 
 Deployment target: [https://quantatalent.vercel.app](https://quantatalent.vercel.app)
 
@@ -15,8 +12,8 @@ Related docs:
 
 ## What It Does
 
-- Minimal Quanta-style landing page with animated Q mark, floating venture
-  partner profiles, and a request-to-join modal.
+- Minimal Quanta-style landing page with a cool-white intro wipe, animated Q
+  mark, floating venture partner profiles, and a request-to-join modal.
 - Join form collects full name, email, short application blurb, optional
   LinkedIn URL, and optional resume.
 - PDF resumes can be previewed in the form before submission.

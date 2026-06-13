@@ -1,6 +1,7 @@
 import { QMark } from "@/components/site/q-mark"
 import { Partners } from "@/components/site/partners"
 import { CursorGlow } from "@/components/site/cursor-glow"
+import { IntroReveal } from "@/components/site/intro-reveal"
 import { Reveal } from "@/components/site/reveal"
 import { JoinProvider, JoinTrigger } from "@/components/site/join-dialog"
 
@@ -15,6 +16,7 @@ const PIPELINE = [
 export default function Home() {
   return (
     <JoinProvider>
+      <IntroReveal />
       <CursorGlow />
       <main className="relative z-10">
         {/* ───────────────────────── Hero ───────────────────────── */}

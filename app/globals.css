@@ -42,6 +42,29 @@ body {
   color: #fff;
 }
 
+.intro-reveal {
+  pointer-events: auto;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #f4f7f8;
+  transform: translate3d(0, 0, 0);
+  animation: intro-slide-up 980ms cubic-bezier(0.8, 0, 0.18, 1) 180ms forwards;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-reveal {
+    display: none;
+  }
+}
+
+@keyframes intro-slide-up {
+  to {
+    transform: translate3d(0, -101%, 0);
+  }
+}
+
 /* Letter-spaced uppercase mono label, matching the reference. */
 .label {
   font-family: var(--font-mono), monospace;

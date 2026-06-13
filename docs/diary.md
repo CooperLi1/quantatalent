@@ -103,3 +103,8 @@ Chronological log of how Quanta Talent came together.
 - Web enrichment is now marked beta in the admin UI, warns admins about
   common-name ambiguity, and stores only public links the LLM judged to
   plausibly match the candidate.
+
+## June 13, 2026 landing motion polish
+- Added a homepage load-in reveal: a cool-white unicolor screen covers the first
+  frame, then slides upward to reveal the black Quanta landing page. Reduced
+  motion skips the wipe.
