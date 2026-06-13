@@ -57,7 +57,7 @@ export const PARTNERS: Partner[] = [
   {
     name: "Rory Stark",
     location: "LinkedIn",
-    company: "Prospective Scout",
+    company: "Altos Labs",
     sector: "Venture Signal",
     image: "/partners/rory-stark-generated.png",
     imageKind: "cutout",
