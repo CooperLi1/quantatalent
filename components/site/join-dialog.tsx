@@ -64,8 +64,10 @@ function JoinModal({ onClose }: { onClose: () => void }) {
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const dropRef = useRef<HTMLLabelElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
+  const previewRequestRef = useRef(0)
 
   // Lock scroll + escape to close.
   useEffect(() => {
@@ -93,22 +95,34 @@ function JoinModal({ onClose }: { onClose: () => void }) {
   }
 
   async function onFile(f: File | null) {
+    const requestId = ++previewRequestRef.current
     setPreview(null)
-    if (!f) return setFile(null)
-    if (!validateFile(f)) return
+    setPreviewLoading(false)
+    if (!f) {
+      setFile(null)
+      return
+    }
+    if (!validateFile(f)) {
+      setFile(null)
+      return
+    }
     setFile(f)
     if (f.type !== "application/pdf") return
 
     try {
+      setPreviewLoading(true)
       const fd = new FormData()
       fd.append("resume", f)
       const res = await fetch("/api/parse-resume", { method: "POST", body: fd })
       const data = await res.json()
+      if (previewRequestRef.current !== requestId) return
       if (typeof data.preview === "string" && data.preview.trim()) {
         setPreview(data.preview.trim())
       }
     } catch {
       /* non-fatal */
+    } finally {
+      if (previewRequestRef.current === requestId) setPreviewLoading(false)
     }
   }
 
@@ -240,11 +254,13 @@ function JoinModal({ onClose }: { onClose: () => void }) {
                       <span className={cn("join-dropzone-value", file && "is-selected")}>
                         {file ? file.name : "PDF or Word"}
                       </span>
-                      {preview && (
+                      {previewLoading ? (
+                        <span className="join-dropzone-preview">Reading...</span>
+                      ) : preview ? (
                         <span className="join-dropzone-preview">
                           Read you as: {preview}
                         </span>
-                      )}
+                      ) : null}
                     </span>
                     <span className="join-dropzone-action">{file ? "Change" : "Upload"}</span>
                   </label>

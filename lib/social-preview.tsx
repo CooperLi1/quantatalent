@@ -1,20 +1,18 @@
-import { siteConfig } from "@/lib/site-config"
-
-function QGlyph({ size = 560 }: { size?: number }) {
+function QGlyph({ size = 560, opacity = 1 }: { size?: number; opacity?: number }) {
   return (
     <svg
       width={size}
       height={Math.round(size * 1.214)}
       viewBox="0 0 1586 1925"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ display: "block" }}
+      style={{ display: "block", opacity }}
     >
       <defs>
         <linearGradient id="q-preview-gradient" x1="236" y1="180" x2="1390" y2="1720">
-          <stop offset="0" stopColor="#d5b8ff" />
-          <stop offset="0.42" stopColor="#74a8ff" />
-          <stop offset="0.72" stopColor="#29d4f0" />
-          <stop offset="1" stopColor="#1672ff" />
+          <stop offset="0" stopColor="#b9eaff" />
+          <stop offset="0.32" stopColor="#70b7ff" />
+          <stop offset="0.66" stopColor="#39d6ee" />
+          <stop offset="1" stopColor="#2c66ff" />
         </linearGradient>
       </defs>
       <g transform="translate(-1498 -288)">
@@ -30,6 +28,45 @@ function QGlyph({ size = 560 }: { size?: number }) {
         />
       </g>
     </svg>
+  )
+}
+
+function SmallLabel({ children }: { children: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        color: "rgba(234, 244, 249, 0.52)",
+        fontSize: 18,
+        letterSpacing: 7,
+        lineHeight: 1,
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+function SignalPill({ children }: { children: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        height: 42,
+        border: "1px solid rgba(255,255,255,0.13)",
+        borderRadius: 999,
+        backgroundColor: "rgba(255,255,255,0.035)",
+        color: "rgba(239,247,250,0.72)",
+        fontSize: 15,
+        letterSpacing: 3.2,
+        padding: "0 17px",
+        textTransform: "uppercase",
+      }}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -51,34 +88,42 @@ export function SocialPreviewCard() {
         style={{
           position: "absolute",
           display: "flex",
-          left: -220,
-          top: -190,
-          width: 760,
-          height: 760,
-          borderRadius: 760,
+          inset: 0,
           background:
-            "radial-gradient(circle, rgba(35, 213, 231, 0.34) 0%, rgba(13, 81, 96, 0.2) 36%, rgba(2, 3, 4, 0) 70%)",
+            "linear-gradient(90deg, rgba(4, 8, 10, 1) 0%, rgba(2, 3, 4, 0.82) 49%, rgba(2, 3, 4, 1) 100%)",
         }}
       />
       <div
         style={{
           position: "absolute",
           display: "flex",
-          right: -250,
-          bottom: -260,
-          width: 760,
-          height: 760,
-          borderRadius: 760,
+          left: -260,
+          top: 0,
+          width: 740,
+          height: 630,
           background:
-            "radial-gradient(circle, rgba(184, 65, 212, 0.38) 0%, rgba(71, 23, 97, 0.24) 38%, rgba(2, 3, 4, 0) 72%)",
+            "linear-gradient(108deg, rgba(57, 214, 238, 0.18) 0%, rgba(57, 214, 238, 0.08) 28%, rgba(2, 3, 4, 0) 72%)",
         }}
       />
       <div
         style={{
           position: "absolute",
           display: "flex",
-          inset: 28,
-          border: "1px solid rgba(255,255,255,0.1)",
+          right: -80,
+          bottom: 0,
+          width: 620,
+          height: 630,
+          background:
+            "linear-gradient(24deg, rgba(214, 93, 202, 0.16) 0%, rgba(37, 99, 235, 0.08) 34%, rgba(2, 3, 4, 0) 70%)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          display: "flex",
+          inset: 30,
+          border: "1px solid rgba(255,255,255,0.105)",
+          borderRadius: 2,
         }}
       />
 
@@ -86,83 +131,97 @@ export function SocialPreviewCard() {
         style={{
           position: "absolute",
           display: "flex",
-          left: 74,
-          top: -58,
-          opacity: 0.95,
+          left: 58,
+          top: 54,
+          width: 1084,
+          height: 522,
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
-      >
-        <QGlyph size={555} />
-      </div>
+      />
 
       <div
         style={{
           position: "absolute",
-          right: 70,
-          top: 78,
-          width: 500,
           display: "flex",
+          left: 78,
+          top: 70,
+          width: 678,
           flexDirection: "column",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            color: "rgba(224,242,249,0.58)",
-            fontSize: 20,
-            letterSpacing: 8,
-            textTransform: "uppercase",
-          }}
-        >
-          Quanta Talent
-        </div>
+        <SmallLabel>Quanta · Talent Community</SmallLabel>
         <div
           style={{
             display: "flex",
             marginTop: 52,
-            fontSize: 58,
-            lineHeight: 1.03,
-            letterSpacing: -1,
-            fontWeight: 500,
+            flexDirection: "column",
           }}
         >
-          Exceptional people surface exceptional companies.
-        </div>
-        <div
-          style={{
-            display: "flex",
-            marginTop: 30,
-            width: 438,
-            color: "rgba(230,238,243,0.72)",
-            fontSize: 25,
-            lineHeight: 1.35,
-          }}
-        >
-          {siteConfig.shortDescription}
-        </div>
-        <div
-          style={{
-            marginTop: 46,
-            display: "flex",
-            gap: 12,
-          }}
-        >
-          {["Future Founders", "Venture Scouts", "0.01% Talent"].map((label) => (
-            <div
-              key={label}
+          <div
+            style={{
+              display: "flex",
+              color: "rgba(247,250,252,0.95)",
+              fontSize: 72,
+              fontWeight: 500,
+              lineHeight: 0.96,
+            }}
+          >
+            The people
+          </div>
+          <div
+            style={{
+              display: "flex",
+              color: "rgba(247,250,252,0.95)",
+              fontSize: 72,
+              fontWeight: 500,
+              lineHeight: 0.96,
+            }}
+          >
+            who reach
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              marginTop: 4,
+            }}
+          >
+            <span
               style={{
-                display: "flex",
-                border: "1px solid rgba(255,255,255,0.16)",
-                borderRadius: 999,
-                color: "rgba(231,239,245,0.68)",
-                fontSize: 14,
-                letterSpacing: 2.4,
-                padding: "10px 14px",
-                textTransform: "uppercase",
+                color: "#54d6ef",
+                fontSize: 88,
+                fontWeight: 600,
+                lineHeight: 0.94,
               }}
             >
-              {label}
-            </div>
-          ))}
+              0.01%
+            </span>
+            <span
+              style={{
+                color: "rgba(247,250,252,0.95)",
+                fontSize: 72,
+                fontWeight: 500,
+                lineHeight: 0.94,
+                marginLeft: 18,
+              }}
+            >
+              first.
+            </span>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 34,
+            width: 620,
+            color: "rgba(229, 238, 243, 0.72)",
+            fontSize: 24,
+            lineHeight: 1.34,
+          }}
+        >
+          Future founders, venture scouts, and exceptional operators surfaced
+          before consensus forms.
         </div>
       </div>
 
@@ -170,15 +229,65 @@ export function SocialPreviewCard() {
         style={{
           position: "absolute",
           display: "flex",
-          left: 70,
-          bottom: 56,
-          color: "rgba(229,242,248,0.45)",
-          fontSize: 17,
-          letterSpacing: 5,
-          textTransform: "uppercase",
+          left: 78,
+          bottom: 66,
+          gap: 12,
         }}
       >
-        {siteConfig.url.replace(/^https?:\/\//, "")}
+        <SignalPill>Future founders</SignalPill>
+        <SignalPill>Venture scouts</SignalPill>
+        <SignalPill>0.01% talent</SignalPill>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          display: "flex",
+          right: 76,
+          bottom: 70,
+          flexDirection: "column",
+          alignItems: "flex-end",
+        }}
+      >
+        <SmallLabel>Venture intelligence</SmallLabel>
+        <div
+          style={{
+            display: "flex",
+            marginTop: 18,
+            color: "rgba(229,242,248,0.5)",
+            fontSize: 17,
+            letterSpacing: 4.5,
+            textTransform: "uppercase",
+          }}
+        >
+          quantatalent.vercel.app
+        </div>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          display: "flex",
+          right: 118,
+          top: 80,
+          width: 300,
+          height: 360,
+          flexDirection: "column",
+          gap: 14,
+          opacity: 0.36,
+        }}
+      >
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              width: 300 - i * 18,
+              height: 1,
+              backgroundColor: "rgba(255,255,255,0.14)",
+            }}
+          />
+        ))}
       </div>
     </div>
   )

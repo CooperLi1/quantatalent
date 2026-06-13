@@ -31,7 +31,7 @@ export const siteConfig = {
 
 export const socialPreview = {
   alt:
-    "Quanta Talent preview card with a glowing Q and text for future founders, venture scouts, and exceptional talent.",
+    "Quanta Talent preview card for future founders, venture scouts, and exceptional talent.",
   width: 1200,
   height: 630,
 } as const

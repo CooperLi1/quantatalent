@@ -65,7 +65,7 @@ export async function sendConfirmationEmail(candidate: {
   email: string
   full_name: string
 }, rawToken: string): Promise<void> {
-  const url = `${env.siteUrl}/confirm?token=${encodeURIComponent(rawToken)}`
+  const url = `${env.emailSiteUrl}/confirm?token=${encodeURIComponent(rawToken)}`
   const subject = "Confirm your request to join Quanta"
   const safeUrl = escapeHtml(url)
   const firstName = escapeHtml(candidate.full_name.split(" ")[0] || "there")
