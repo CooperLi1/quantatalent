@@ -29,7 +29,7 @@ function logEvent(row: {
       subject: row.subject,
       status: row.status,
       resend_id: row.resend_id ?? null,
-      meta: row.meta ?? null,
+      meta: (row.meta ?? null) as never,
     })
 }
 

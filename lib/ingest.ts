@@ -58,19 +58,30 @@ export async function analyzeCandidate(c: {
   linkedin_url: string | null
   resume_text: string | null
 }): Promise<IngestResult> {
-  const completion = await openai().chat.completions.create({
-    model: CHAT_MODEL,
-    temperature: 0.2,
-    max_tokens: 700,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: buildUserPrompt(c) },
-    ],
-  })
+  const messages = [
+    { role: "system" as const, content: SYSTEM_PROMPT },
+    { role: "user" as const, content: buildUserPrompt(c) },
+  ]
 
-  const raw = completion.choices[0]?.message?.content ?? "{}"
-  const parsed = JSON.parse(raw) as Partial<IngestResult>
+  // JSON mode only guarantees valid JSON when the output isn't truncated, so
+  // give it headroom and retry once if a generation still comes back broken.
+  let parsed: Partial<IngestResult> | null = null
+  for (let attempt = 0; attempt < 2 && !parsed; attempt++) {
+    const completion = await openai().chat.completions.create({
+      model: CHAT_MODEL,
+      temperature: 0.2,
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
+      messages,
+    })
+    const raw = completion.choices[0]?.message?.content ?? "{}"
+    try {
+      parsed = JSON.parse(raw) as Partial<IngestResult>
+    } catch {
+      parsed = null
+    }
+  }
+  if (!parsed) throw new Error("Model returned invalid JSON after retry")
 
   const tags = (parsed.tags ?? {}) as Partial<AiTags>
   return {
@@ -136,7 +147,7 @@ export async function ingestCandidate(candidateId: string): Promise<void> {
       .from("candidates")
       .update({
         ai_summary: result.summary,
-        ai_tags: result.tags,
+        ai_tags: result.tags as never,
         exceptional_score: result.exceptional_score,
         exceptional_rationale: result.exceptional_rationale,
         embedding: toVectorLiteral(vector),

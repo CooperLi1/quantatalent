@@ -1,65 +1,133 @@
-import Image from "next/image";
+import { QMark } from "@/components/site/q-mark"
+import { Partners } from "@/components/site/partners"
+import { CursorGlow } from "@/components/site/cursor-glow"
+import { Reveal } from "@/components/site/reveal"
+import { JoinProvider, JoinTrigger } from "@/components/site/join-dialog"
+
+const PIPELINE = [
+  ["Scouts discover", "Operators surface startups in motion."],
+  ["AI structures", "Conversations become venture intelligence."],
+  ["Team evaluates", "Signal is reviewed by the network."],
+  ["Follow-ups compound", "Relationships deepen over time."],
+  ["Signal surfaces", "The right companies rise early."],
+]
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <JoinProvider>
+      <CursorGlow />
+      <main className="relative z-10">
+        {/* ───────────────────────── Hero ───────────────────────── */}
+        <section className="hero-shell">
+          <div aria-hidden className="hero-ambient" />
+
+          <div className="hero-kicker label">/ Venture Intelligence</div>
+
+          <div className="hero-mark-wrap">
+            <QMark className="hero-qmark" />
+          </div>
+
+          <div className="hero-scroll-cue label">Scroll down ↓</div>
+
+          <aside className="hero-control-panel" aria-label="Scout portal">
+            <div className="hero-panel-line" />
+            <div className="hero-control-copy">
+              <span className="label">Aspiring Future Founders</span>
+              <span className="label">Prospective Venture Scouts</span>
+              <span className="label">0.01% Exceptional Talent</span>
+            </div>
+            <JoinTrigger className="portal-pill">Join our talent community</JoinTrigger>
+          </aside>
+        </section>
+
+        {/* ─────────────────────── Partners ─────────────────────── */}
+        <section className="scout-section">
+          <Reveal className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title text-3xl font-medium leading-tight tracking-tight sm:text-5xl">
+              Exceptional operators at the edge of signal.
+            </h2>
+            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-muted">
+              The network compounds through people with taste, context, and trusted
+              access — long before consensus forms.
+            </p>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <Partners />
+          </Reveal>
+
+          <Reveal className="mx-auto mt-10 max-w-xl text-center sm:mt-2">
+            <h3 className="text-2xl font-medium tracking-tight text-foreground">
+              For scouts with uncommon access.
+            </h3>
+            <p className="label mt-4 leading-loose">
+              Join the people surfacing companies before the market knows where to look.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <JoinTrigger className="portal-pill">Join our talent community</JoinTrigger>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* ─────────────────────── Editorial ────────────────────── */}
+        <section className="relative overflow-hidden border-t border-hairline px-6 py-28 sm:px-12 sm:py-40">
+          {/* faint Q watermark */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-20 top-1/2 -z-10 hidden -translate-y-1/2 opacity-[0.06] sm:block"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+            <QMark className="h-[34rem] w-auto" />
+          </div>
+
+          <div className="mx-auto grid max-w-5xl gap-16 sm:grid-cols-2">
+            <Reveal>
+              <h2 className="text-balance text-3xl font-medium leading-snug tracking-tight text-foreground sm:text-[2.6rem]">
+                A distributed network turning human intuition into venture signal.
+              </h2>
+              <p className="mt-7 max-w-md text-sm leading-relaxed text-muted">
+                Scouts surface startups early. Operators discover opportunities in
+                motion. AI turns conversations into structured venture intelligence.
+              </p>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+                The workflow stays lightweight while the network compounds globally:
+                faster discovery, sharper follow-up, clearer signal.
+              </p>
+            </Reveal>
+
+            <Reveal delay={120}>
+              <ol className="divide-y divide-hairline">
+                {PIPELINE.map(([title, desc], i) => (
+                  <li key={title} className="flex items-baseline justify-between gap-6 py-4">
+                    <div>
+                      <div className="label text-muted">{title}</div>
+                      <div className="mt-1 text-xs text-faint">{desc}</div>
+                    </div>
+                    <span className="font-mono text-xs text-faint">
+                      0{i + 1}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-10">
+                <JoinTrigger className="portal-pill">Join our talent community</JoinTrigger>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ──────────────────────── Footer ──────────────────────── */}
+        <footer className="border-t border-hairline px-6 py-10 sm:px-12">
+          <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
+            <span className="label">Quanta · Venture Intelligence</span>
+            <div className="flex items-center gap-6">
+              <a href="/privacy" className="label transition-colors hover:text-muted">
+                Privacy
+              </a>
+              <span className="label">© {new Date().getFullYear()}</span>
+            </div>
+          </div>
+        </footer>
       </main>
-    </div>
-  );
+    </JoinProvider>
+  )
 }

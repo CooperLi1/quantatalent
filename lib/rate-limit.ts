@@ -29,7 +29,7 @@ export async function rateLimit(
 }
 
 /** Best-effort client IP from proxy headers (Vercel sets x-forwarded-for). */
-export function clientIp(headers: Headers): string {
+export function clientIp(headers: { get(name: string): string | null }): string {
   const fwd = headers.get("x-forwarded-for")
   if (fwd) return fwd.split(",")[0].trim()
   return headers.get("x-real-ip") || "0.0.0.0"

@@ -46,34 +46,59 @@ export function isPublicUrl(raw: string): boolean {
     return false
   }
   if (url.protocol !== "http:" && url.protocol !== "https:") return false
-  const host = url.hostname.toLowerCase()
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "")
   if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal"))
     return false
-  // Literal IPv4 checks
-  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/)
-  if (ipv4) {
-    const [a, b] = [Number(ipv4[1]), Number(ipv4[2])]
-    if (a === 10) return false
-    if (a === 127) return false
-    if (a === 0) return false
-    if (a === 169 && b === 254) return false // link-local + metadata
-    if (a === 172 && b >= 16 && b <= 31) return false
-    if (a === 192 && b === 168) return false
-    if (a === 100 && b >= 64 && b <= 127) return false // CGNAT
+  if (host.includes(":")) {
+    if (host === "::1" || host === "::" || host.startsWith("fc") || host.startsWith("fd"))
+      return false
+    if (host.startsWith("fe80:")) return false
+    if (host.startsWith("::ffff:")) return isPublicIpv4(host.slice(7))
   }
-  if (host === "[::1]" || host.startsWith("[fc") || host.startsWith("[fd")) return false
+
+  // Literal IPv4 checks
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) return isPublicIpv4(host)
+  return true
+}
+
+function isPublicIpv4(host: string): boolean {
+  const parts = host.split(".").map(Number)
+  if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) {
+    return false
+  }
+  const [a, b] = parts
+  if (a === 10) return false
+  if (a === 127) return false
+  if (a === 0) return false
+  if (a === 169 && b === 254) return false
+  if (a === 172 && b >= 16 && b <= 31) return false
+  if (a === 192 && b === 168) return false
+  if (a === 100 && b >= 64 && b <= 127) return false
   return true
 }
 
 /** Fetch a page and return stripped, length-capped readable text. */
-export async function fetchReadable(url: string, maxChars = 4000): Promise<string | null> {
+export async function fetchReadable(
+  url: string,
+  maxChars = 4000,
+  redirects = 0
+): Promise<string | null> {
   if (!isPublicUrl(url)) return null
   try {
     const res = await fetch(url, {
-      redirect: "follow",
+      redirect: "manual",
       signal: AbortSignal.timeout(7000),
       headers: { "User-Agent": "QuantaTalentBot/1.0 (+https://quantatalent.vercel.app)" },
     })
+    if (res.status >= 300 && res.status < 400) {
+      if (redirects >= 3) return null
+      const location = res.headers.get("location")
+      if (!location) return null
+      const nextUrl = new URL(location, url).toString()
+      if (!isPublicUrl(nextUrl)) return null
+      return fetchReadable(nextUrl, maxChars, redirects + 1)
+    }
+    if (!isPublicUrl(res.url)) return null
     if (!res.ok) return null
     const type = res.headers.get("content-type") || ""
     if (!type.includes("text/html") && !type.includes("text/plain")) return null
