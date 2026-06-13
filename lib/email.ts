@@ -34,15 +34,30 @@ function logEvent(row: {
 }
 
 const shell = (inner: string) => `
-<div style="background:#0a0a0a;padding:48px 24px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-  <div style="max-width:520px;margin:0 auto;color:#e5e5e5;">
-    <div style="font-size:12px;letter-spacing:0.3em;color:#6b7280;text-transform:uppercase;margin-bottom:32px;">Quanta&nbsp;·&nbsp;Venture Intelligence</div>
-    ${inner}
-    <div style="margin-top:40px;padding-top:24px;border-top:1px solid #1f1f1f;font-size:12px;color:#525252;line-height:1.6;">
-      You received this because someone requested to join the Quanta talent community with this address.
-      If that wasn't you, ignore this email and no profile will be created.
-    </div>
-  </div>
+<div style="margin:0;padding:0;background:#f4f6f7;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#151619;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#f4f6f7;">
+    <tr>
+      <td align="center" style="padding:36px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;max-width:600px;background:#ffffff;border:1px solid #dfe4e8;border-radius:22px;overflow:hidden;">
+          <tr>
+            <td style="padding:0;background:#ffffff;">
+              <div style="height:4px;line-height:4px;background:#48bde8;font-size:1px;">&nbsp;</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:38px 42px 32px;">
+              <div style="font-family:SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;font-size:11px;letter-spacing:0.24em;line-height:1.4;color:#6b7280;text-transform:uppercase;margin-bottom:28px;">Quanta / Venture Intelligence</div>
+              ${inner}
+              <div style="margin-top:36px;padding-top:22px;border-top:1px solid #e3e7eb;font-size:12px;color:#6b7280;line-height:1.65;">
+                You received this because someone requested to join the Quanta talent community with this address.
+                If that was not you, ignore this email and no profile will be created.
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </div>`
 
 export async function sendConfirmationEmail(candidate: {
@@ -52,13 +67,24 @@ export async function sendConfirmationEmail(candidate: {
 }, rawToken: string): Promise<void> {
   const url = `${env.siteUrl}/confirm?token=${encodeURIComponent(rawToken)}`
   const subject = "Confirm your request to join Quanta"
+  const safeUrl = escapeHtml(url)
+  const firstName = escapeHtml(candidate.full_name.split(" ")[0] || "there")
   const html = shell(`
-    <div style="font-size:22px;color:#fafafa;font-weight:500;margin-bottom:16px;">Confirm your email</div>
-    <p style="font-size:15px;line-height:1.7;color:#a3a3a3;margin:0 0 28px;">
-      ${escapeHtml(candidate.full_name.split(" ")[0])}, you're one click from joining the people surfacing companies before the market knows where to look. Confirm this address to enter the community.
+    <div style="font-size:28px;line-height:1.16;color:#151619;font-weight:600;letter-spacing:-0.01em;margin:0 0 16px;">Confirm your email</div>
+    <p style="font-size:16px;line-height:1.65;color:#4b5563;margin:0 0 28px;max-width:500px;">
+      ${firstName}, confirm this address to continue your request to join the people surfacing companies before consensus forms.
     </p>
-    <a href="${url}" style="display:inline-block;background:#fafafa;color:#0a0a0a;text-decoration:none;font-size:14px;font-weight:600;padding:14px 28px;border-radius:999px;">Confirm my email</a>
-    <p style="font-size:13px;color:#525252;margin:28px 0 0;">This link expires in 24 hours. If the button doesn't work, paste this into your browser:<br/><span style="color:#737373;word-break:break-all;">${url}</span></p>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 30px;">
+      <tr>
+        <td style="background:#111316;border-radius:999px;">
+          <a href="${safeUrl}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:14px;font-weight:650;letter-spacing:0.01em;padding:14px 26px;border-radius:999px;">Confirm my email</a>
+        </td>
+      </tr>
+    </table>
+    <div style="background:#f7f9fa;border:1px solid #e3e7eb;border-radius:14px;padding:14px 16px;">
+      <div style="font-size:12px;line-height:1.55;color:#6b7280;margin:0 0 6px;">This link expires in 24 hours. If the button does not work, paste this into your browser.</div>
+      <a href="${safeUrl}" style="font-size:12px;line-height:1.55;color:#256f8f;text-decoration:underline;word-break:break-all;">${safeUrl}</a>
+    </div>
   `)
 
   const api = client()
@@ -101,7 +127,7 @@ export async function sendOutreachEmail(args: {
   adminEmail: string
 }): Promise<{ ok: boolean; error?: string }> {
   const html = shell(
-    `<div style="font-size:15px;line-height:1.7;color:#d4d4d4;white-space:pre-wrap;">${escapeHtml(
+    `<div style="font-size:15px;line-height:1.7;color:#30343a;white-space:pre-wrap;">${escapeHtml(
       args.body
     )}</div>`
   )

@@ -2,6 +2,7 @@ import "server-only"
 
 import { supabaseAdmin } from "@/lib/supabase/admin"
 import { openai, CHAT_MODEL, embed, toVectorLiteral } from "@/lib/openai"
+import { UNTRUSTED_DATA_SYSTEM_RULE, untrustedJson, compactText } from "@/lib/llm-safety"
 import type { CandidateRow } from "@/lib/types/database"
 
 export interface AiTags {
@@ -19,6 +20,8 @@ export interface IngestResult {
 }
 
 const SYSTEM_PROMPT = `You are the talent analyst for an elite venture community whose mandate is to find people who have demonstrably reached the top 0.01% of a field: future founders, venture scouts, and exceptional operators.
+
+${UNTRUSTED_DATA_SYSTEM_RULE}
 
 You are given a candidate's self-description and (optionally) their résumé text. Produce a STRICT JSON object with these keys:
 
@@ -40,15 +43,12 @@ function buildUserPrompt(c: {
   linkedin_url: string | null
   resume_text: string | null
 }): string {
-  const parts = [
-    `Name: ${c.full_name}`,
-    c.linkedin_url ? `LinkedIn: ${c.linkedin_url}` : null,
-    `\nWhy they are exceptional / why they want to join:\n${c.blurb}`,
-    c.resume_text
-      ? `\nRésumé (truncated):\n${c.resume_text.slice(0, 6000)}`
-      : `\n(No résumé provided.)`,
-  ].filter(Boolean)
-  return parts.join("\n")
+  return untrustedJson("candidate_application", {
+    full_name: compactText(c.full_name, 200),
+    linkedin_url: c.linkedin_url ? compactText(c.linkedin_url, 500) : null,
+    blurb: compactText(c.blurb, 3000),
+    resume_text: c.resume_text ? c.resume_text.slice(0, 6000) : null,
+  })
 }
 
 /** Run the model. Pure function — no DB side effects, easy to test. */
@@ -85,15 +85,21 @@ export async function analyzeCandidate(c: {
 
   const tags = (parsed.tags ?? {}) as Partial<AiTags>
   return {
-    summary: String(parsed.summary ?? "").slice(0, 1000),
+    summary: compactText(parsed.summary, 1000),
     tags: {
-      domains: Array.isArray(tags.domains) ? tags.domains.slice(0, 6) : [],
-      skills: Array.isArray(tags.skills) ? tags.skills.slice(0, 8) : [],
-      seniority: typeof tags.seniority === "string" ? tags.seniority : "unknown",
-      signals: Array.isArray(tags.signals) ? tags.signals.slice(0, 10) : [],
+      domains: Array.isArray(tags.domains)
+        ? tags.domains.map((s) => compactText(s, 80)).filter(Boolean).slice(0, 6)
+        : [],
+      skills: Array.isArray(tags.skills)
+        ? tags.skills.map((s) => compactText(s, 80)).filter(Boolean).slice(0, 8)
+        : [],
+      seniority: normalizeSeniority(tags.seniority),
+      signals: Array.isArray(tags.signals)
+        ? tags.signals.map((s) => compactText(s, 140)).filter(Boolean).slice(0, 10)
+        : [],
     },
     exceptional_score: clampScore(parsed.exceptional_score),
-    exceptional_rationale: String(parsed.exceptional_rationale ?? "").slice(0, 600),
+    exceptional_rationale: compactText(parsed.exceptional_rationale, 600),
   }
 }
 
@@ -101,6 +107,19 @@ function clampScore(n: unknown): number {
   const v = Math.round(Number(n))
   if (!Number.isFinite(v)) return 0
   return Math.max(0, Math.min(100, v))
+}
+
+function normalizeSeniority(value: unknown): string {
+  const allowed = new Set([
+    "student",
+    "early-career",
+    "mid",
+    "senior",
+    "staff+",
+    "founder",
+    "executive",
+  ])
+  return typeof value === "string" && allowed.has(value) ? value : "unknown"
 }
 
 /** Compact string used for the semantic-search embedding. */

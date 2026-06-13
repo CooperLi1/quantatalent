@@ -1,24 +1,32 @@
-# Deploy checklist — quantatalent.vercel.app
+# Deploy Checklist - quantatalent.vercel.app
 
-The app is build-ready (`next build` passes, 17 routes). Follow these steps to
+The app is build-ready (`next build` passes, 23 app routes). Follow these steps to
 ship it to Vercel under **Cooper's projects** and make the backend live.
 
 ---
 
-## 0. Finish local config (one secret)
+## 0. Finish Local Config
 
-Paste the Supabase **service_role** key into `.env.local`:
+Copy `.env.example` to `.env.local` and fill in the server-side secrets:
 
+```bash
+cp .env.example .env.local
 ```
-SUPABASE_SERVICE_ROLE_KEY=<Supabase Dashboard → Project Settings → API keys → service_role>
-```
 
-Then `npm run dev` and you can exercise the full flow locally. (OpenAI, Resend,
-and Brave keys are already in `.env.local`.)
+At minimum for a full demo, set:
+
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY`
+- `RESEND_API_KEY`
+- `BRAVE_SEARCH_API_KEY`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD` or `ADMIN_PASSWORD_HASH`
+- `ADMIN_SESSION_SECRET`
+- `CRON_SECRET`
 
 ---
 
-## 1. Deploy with the Vercel CLI
+## 1. Deploy With The Vercel CLI
 
 ```bash
 npx vercel login                      # authenticate
@@ -34,7 +42,7 @@ npx vercel --prod                     # production deploy
 
 ---
 
-## 2. Set Environment Variables in Vercel
+## 2. Set Environment Variables In Vercel
 
 Project → Settings → Environment Variables (Production + Preview). Public values
 are below; copy the secret values from your `.env.local`.
@@ -49,7 +57,10 @@ are below; copy the secret values from your `.env.local`.
 | `RESEND_API_KEY` | *(from `.env.local`)* |
 | `EMAIL_FROM` | `Quanta Talent <onboarding@resend.dev>` |
 | `BRAVE_SEARCH_API_KEY` | *(from `.env.local`)* |
-| `ADMIN_EMAILS` | `shanli@stanford.edu` (comma-separate to add more) |
+| `ADMIN_USERNAME` | `user` |
+| `ADMIN_PASSWORD` | `quanta123` *(demo only; replace before real use)* |
+| `ADMIN_PASSWORD_HASH` | *(optional; preferred over plaintext password for production)* |
+| `ADMIN_SESSION_SECRET` | *(any random string; falls back to `CRON_SECRET` if unset)* |
 | `NEXT_PUBLIC_SITE_URL` | `https://quantatalent.vercel.app` |
 | `CRON_SECRET` | *(any random string, e.g. `openssl rand -hex 16`)* |
 
@@ -57,25 +68,16 @@ Redeploy after setting them (`npx vercel --prod`) so they take effect.
 
 ---
 
-## 3. Supabase Auth URLs (for admin magic-link)
-
-Supabase Dashboard → **Authentication → URL Configuration**:
-- **Site URL**: `https://quantatalent.vercel.app`
-- **Redirect URLs**: add `https://quantatalent.vercel.app/**` and `http://localhost:3000/**`
-
-Without this, the magic-link callback (`/admin/auth/callback`) won't complete.
-
----
-
-## 4. Smoke test (prod)
+## 3. Smoke Test Production
 
 1. Visit `/` → request to join with **your own** email (Resend test domain only
    delivers to the Resend account address).
 2. Open the confirmation email → click the link → see the personalized read-back.
-3. Visit `/admin` → sign in with an `ADMIN_EMAILS` address → confirm the new
-   profile appears with its AI summary + signal score.
+3. Visit `/admin` → sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD` → confirm
+   the new profile appears with its AI summary + signal score.
 4. Try **Semantic** and **AI match** search; open a profile and try
-   **Enrich from web**, **Find similar**, **AI draft** + send, résumé download.
+   **Run research** (web enrichment beta), **Find similar**, **AI draft** +
+   send, and résumé download.
 
 ---
 

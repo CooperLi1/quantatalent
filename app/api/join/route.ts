@@ -16,6 +16,13 @@ const GENERIC_OK = {
   message: "Check your inbox to confirm your email and complete your request.",
 }
 
+const ALREADY_CONFIRMED_OK = {
+  ok: true,
+  status: "already_confirmed",
+  message:
+    "You're already in the Quanta Talent community. The venture team can already see your confirmed profile.",
+}
+
 export async function POST(req: NextRequest) {
   const ip = clientIp(req.headers)
   const userAgent = req.headers.get("user-agent")?.slice(0, 500) ?? null
@@ -98,8 +105,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Already confirmed: do nothing, but respond generically.
-  if (existing?.status === "confirmed") return Response.json(GENERIC_OK)
+  // Already confirmed: do nothing, but tell the user they are already in.
+  if (existing?.status === "confirmed") return Response.json(ALREADY_CONFIRMED_OK)
 
   // Upsert the candidate (insert new, or refresh a still-pending one).
   let candidateId: string

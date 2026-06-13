@@ -1,12 +1,11 @@
 import { requireAdmin } from "@/lib/admin-auth"
 import { listCandidates } from "@/lib/dal"
 import { AdminDashboard, type Candidate } from "@/components/admin/dashboard"
-import { signOut } from "./actions"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
-  const admin = await requireAdmin()
+  await requireAdmin()
   const candidates = await listCandidates({ sort: "score", limit: 200 })
 
   const scored = candidates.filter((c) => typeof c.exceptional_score === "number")
@@ -24,12 +23,6 @@ export default async function AdminPage() {
         <div>
           <div className="label">Quanta · Admin</div>
           <h1 className="mt-1 text-2xl font-medium text-foreground">Talent community</h1>
-        </div>
-        <div className="flex items-center gap-5">
-          <span className="text-xs text-faint">{admin.email}</span>
-          <form action={signOut}>
-            <button className="label transition-colors hover:text-muted">Sign out</button>
-          </form>
         </div>
       </header>
 

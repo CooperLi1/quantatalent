@@ -41,7 +41,7 @@ export default function Home() {
         </section>
 
         {/* ─────────────────────── Partners ─────────────────────── */}
-        <section className="scout-section">
+        <section id="scouts" className="scout-section">
           <Reveal className="mx-auto max-w-2xl text-center">
             <h2 className="section-title text-3xl font-medium leading-tight tracking-tight sm:text-5xl">
               Exceptional operators at the edge of signal.

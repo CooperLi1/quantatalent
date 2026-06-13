@@ -58,7 +58,8 @@ Deployment target: **`quantatalent.vercel.app`** under **Cooper's projects**
 - **Resend** integration to contact candidates from the dashboard.
 - Search: default **vector search**, plus an **LLM (GPT) role-match** ("find me
   a founder who can build X…") designed to be **cheap / low-token**.
-- **Web enrichment** feature (Brave Search + scraping + LLM), rate limited.
+- **Web enrichment beta** feature (Brave Search + safe public-page fetching +
+  LLM entity matching), rate limited.
 - Above-and-beyond welcome.
 
 ## 4. Decisions locked during planning
@@ -66,7 +67,7 @@ Deployment target: **`quantatalent.vercel.app`** under **Cooper's projects**
 | Area | Decision |
 |---|---|
 | LLM provider | **OpenAI / GPT** — `gpt-4o-mini` for summary/ranking/enrichment, `text-embedding-3-small` (1536-dim) for vectors. |
-| Admin auth | **Supabase magic-link** restricted to an `ADMIN_EMAILS` allowlist (real auth, no shared password to leak). |
+| Admin auth | **Username/password** backed by env vars and an HTTP-only signed session cookie. Demo credentials: `user` / `quanta123`. |
 | Anti-abuse | **Lightweight, no extra accounts**: honeypot field + Postgres-backed per-IP/per-email fixed-window rate limiting. |
 | Partner portraits | **Temporary placeholders** per person (elegant silhouettes), driven by a config array; real transparent PNGs to be dropped in later. |
 | Ingestion timing | **Ingest immediately on signup** (analyze + embed at submit time) but **expose only after email confirmation**. No cold-start when an admin opens a freshly confirmed profile. |
@@ -89,8 +90,8 @@ Vercel: hosting + Cron (daily purge of unconfirmed signups)
 and written **server-side using the Supabase service-role key**. The public
 anon/publishable key never touches candidate tables. **RLS is enabled with no
 policies** → anon/authenticated are denied at the row level (defense in depth);
-the service role bypasses RLS. Admin reads happen only after the request's
-Supabase session email is verified against `ADMIN_EMAILS`.
+the service role bypasses RLS. Admin reads happen only after the request has a
+valid signed admin session cookie.
 
 ## 6. Data model (Supabase `public`)
 
@@ -103,7 +104,7 @@ Supabase session email is verified against `ADMIN_EMAILS`.
 - **confirmation_tokens** — candidate_id, **token_hash** (sha256; raw token only
   ever emailed), expires_at, used_at.
 - **rate_limits** — (bucket, window_start) → count; atomic via `bump_rate_limit`.
-- **email_events** — Resend send/webhook log.
+- **email_events** — confirmation and outreach email send log.
 - **admin_audit** — every admin action.
 - **saved_roles** — admin-defined roles (+embedding) for future auto-matching.
 - RPC **match_candidates(query_embedding, match_count)** — cosine search over
@@ -130,14 +131,15 @@ Supabase session email is verified against `ADMIN_EMAILS`.
 - `/confirm?token=…`: single-use, time-limited (24h), hash-compared; flips to
   `confirmed`; shows a **personalized AI read-back** of the candidate.
 
-**Admin dashboard** (`/admin`, magic-link gated)
+**Admin dashboard** (`/admin`, username/password gated)
 - Stat strip (confirmed count, avg signal, enriched count).
 - List of confirmed candidates sorted by exceptional score; expand for detail.
 - **Semantic search** (vector, ~free) and **AI role-match** (two-stage:
   vector shortlist → one cheap ranking call → top picks with a one-line "why").
-- Per-candidate: résumé download (signed URL), LinkedIn, **web enrichment**
-  (Brave + SSRF-guarded scrape + LLM, cached), **find similar** (vector
-  neighbors), **AI-drafted outreach** + send via Resend, **delete** (GDPR).
+- Per-candidate: résumé download (signed URL), LinkedIn, **web enrichment beta**
+  (Brave + SSRF-guarded scrape + LLM entity matching, cached), **find similar**
+  (vector neighbors), **AI-drafted outreach** + send via Resend, and candidate
+  deletion with résumé cleanup.
 - Every action audit-logged.
 
 **Jobs**
@@ -162,30 +164,31 @@ Supabase session email is verified against `ADMIN_EMAILS`.
 - SSRF guard on enrichment fetches (blocks localhost, private/CGNAT/link-local
   ranges, cloud metadata IP; http(s) + content-type + size caps).
 - Function `search_path` pinned; advisors checked.
-- GDPR: deletion endpoint + retention purge + privacy policy.
+- Admin deletion endpoint + retention purge + privacy policy.
 
 ## 10. Environment configuration
 
 See [`.env.example`](../.env.example). Secrets I cannot self-provision:
 - `SUPABASE_SERVICE_ROLE_KEY` — from Supabase dashboard (not exposed via MCP).
-- Supabase **Auth → URL config**: set Site URL + redirect URLs to include
-  `http://localhost:3000/**` and `https://quantatalent.vercel.app/**` (for the
-  magic-link callback).
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD` — currently `user` / `quanta123` for demo.
+- `ADMIN_SESSION_SECRET` — random cookie-signing secret (falls back to
+  `CRON_SECRET` if unset).
 - `CRON_SECRET` — any random string (also used by Vercel Cron).
 Provided by the user: `OPENAI_API_KEY`, `RESEND_API_KEY`, `BRAVE_SEARCH_API_KEY`.
-Public/known: Supabase URL + publishable key, `ADMIN_EMAILS`, `NEXT_PUBLIC_SITE_URL`.
+Public/known: Supabase URL + publishable key, `NEXT_PUBLIC_SITE_URL`.
 
 ## 11. "Go above and beyond" — shipped + candidate ideas
 
 **Shipped beyond the brief:** exceptional-signal score with rationale,
 provenance-minded signal extraction, instant résumé read-back, personalized
 confirmation page, two-stage low-token AI role-match, find-similar, AI-drafted
-outreach, audit log, GDPR delete + retention purge, SSRF protection, documented
+outreach, audit log, candidate delete + retention purge, SSRF protection, documented
 cost model.
 
-**Easy future adds (not yet built):** ⌘K command palette with streaming search,
-saved-role auto-matching feed, side-by-side compare, Resend open/reply webhooks,
-analytics charts, a small test suite on the security-critical paths.
+**Easy future adds (not yet built):** command palette with streaming search,
+saved-role auto-matching feed, side-by-side compare, email delivery/reply
+webhooks, analytics charts, and a small test suite on the security-critical
+paths.
 
 ## 12. Status / remaining
 
@@ -194,11 +197,11 @@ analytics charts, a small test suite on the security-critical paths.
 - [x] Landing page + cloned Q + hero glow + partners + join modal
 - [x] Confirm flow + personalized read-back
 - [x] Privacy policy
-- [x] Admin auth (magic link + allowlist) + API routes
+- [x] Admin auth (username/password + signed cookie) + API routes
 - [x] Admin dashboard UI
 - [x] README, diary.md, lessons.md, .env.example
 - [x] Local end-to-end verification
-- [ ] Deploy to Vercel + set env + Supabase Auth URLs
+- [ ] Deploy to Vercel + set env
 
 Audit note (June 13, 2026): the Vercel connector can see **Cooper's projects**
 (`team_Mb1NYVWemYdfwasn6zQATd5w`) but currently lists no Vercel projects there,

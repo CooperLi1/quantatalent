@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 // Local view model (mirrors the DAL's display columns; kept here so this
@@ -30,12 +31,16 @@ interface Enrichment {
   confirmed_claims?: string[]
   links?: { title: string; url: string }[]
   notable?: string
+  source_indexes?: number[]
+  generated_at?: string
+  query?: string
 }
 
 type Mode = "semantic" | "ai"
 type Sort = "score" | "recent"
 
 export function AdminDashboard({ initial }: { initial: Candidate[] }) {
+  const router = useRouter()
   const [list, setList] = useState<Candidate[]>(initial)
   const [query, setQuery] = useState("")
   const [mode, setMode] = useState<Mode>("semantic")
@@ -98,6 +103,17 @@ export function AdminDashboard({ initial }: { initial: Candidate[] }) {
     setList((prev) => prev.filter((c) => c.id !== id))
   }
 
+  function markEnriched(id: string, enrichment: Enrichment | null) {
+    setList((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, enrichment, enriched_at: c.enriched_at ?? new Date().toISOString() }
+          : c
+      )
+    )
+    router.refresh()
+  }
+
   return (
     <div className="mt-8">
       {/* Search */}
@@ -117,9 +133,6 @@ export function AdminDashboard({ initial }: { initial: Candidate[] }) {
             }
             className="mt-2 w-full rounded-lg border border-hairline bg-transparent px-3 py-2.5 text-sm text-foreground outline-none placeholder:text-faint focus:border-accent/50"
           />
-          <p className="mt-2 text-xs leading-relaxed text-faint">
-            Semantic search is vector-only. AI match ranks a short vector shortlist.
-          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Toggle active={mode === "semantic"} onClick={() => setMode("semantic")}>
@@ -131,7 +144,7 @@ export function AdminDashboard({ initial }: { initial: Candidate[] }) {
           <button
             type="submit"
             disabled={searching}
-            className="rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background disabled:opacity-50"
+            className="admin-search-button"
           >
             {searching ? "Searching" : "Search"}
           </button>
@@ -174,6 +187,7 @@ export function AdminDashboard({ initial }: { initial: Candidate[] }) {
             open={openId === c.id}
             onToggle={() => setOpenId(openId === c.id ? null : c.id)}
             onRemove={() => removeFromList(c.id)}
+            onEnriched={markEnriched}
           />
         ))}
       </ul>
@@ -233,11 +247,13 @@ function CandidateCard({
   open,
   onToggle,
   onRemove,
+  onEnriched,
 }: {
   c: Candidate
   open: boolean
   onToggle: () => void
   onRemove: () => void
+  onEnriched: (id: string, enrichment: Enrichment | null) => void
 }) {
   const tags = c.ai_tags ?? {}
   return (
@@ -268,12 +284,20 @@ function CandidateCard({
         <ScoreBadge score={c.exceptional_score} />
       </button>
 
-      {open && <CandidateDetail c={c} onRemove={onRemove} />}
+      {open && <CandidateDetail c={c} onRemove={onRemove} onEnriched={onEnriched} />}
     </li>
   )
 }
 
-function CandidateDetail({ c, onRemove }: { c: Candidate; onRemove: () => void }) {
+function CandidateDetail({
+  c,
+  onRemove,
+  onEnriched,
+}: {
+  c: Candidate
+  onRemove: () => void
+  onEnriched: (id: string, enrichment: Enrichment | null) => void
+}) {
   const tags = c.ai_tags ?? {}
   const [enrichment, setEnrichment] = useState<Enrichment | null>(c.enrichment)
   const [enriching, setEnriching] = useState(false)
@@ -292,10 +316,20 @@ function CandidateDetail({ c, onRemove }: { c: Candidate; onRemove: () => void }
 
   async function enrich() {
     setEnriching(true)
-    const r = await post("/api/admin/enrich", { candidateId: c.id })
-    if (r.ok) setEnrichment(r.enrichment)
-    else alert(r.error ?? "Enrichment failed.")
-    setEnriching(false)
+    try {
+      const r = await post("/api/admin/enrich", { candidateId: c.id })
+      if (!r.ok) {
+        alert(r.error ?? "Enrichment failed.")
+        return
+      }
+      const nextEnrichment = r.enrichment ?? null
+      setEnrichment(nextEnrichment)
+      onEnriched(c.id, nextEnrichment)
+    } catch {
+      alert("Enrichment failed.")
+    } finally {
+      setEnriching(false)
+    }
   }
 
   async function findSimilar() {
@@ -355,45 +389,12 @@ function CandidateDetail({ c, onRemove }: { c: Candidate; onRemove: () => void }
       </div>
 
       {/* Enrichment */}
-      <div className="mt-5">
-        <div className="flex items-center justify-between">
-          <Label>Web enrichment</Label>
-          <button
-            onClick={enrich}
-            disabled={enriching}
-            className="label text-accent/80 hover:text-accent disabled:opacity-50"
-          >
-            {enriching ? "Researching" : enrichment ? "Refresh" : "Enrich from web"}
-          </button>
-        </div>
-        {enrichment ? (
-          <div className="mt-3 space-y-2">
-            {enrichment.notable && <p className="text-sm text-foreground">{enrichment.notable}</p>}
-            <ul className="space-y-1">
-              {(enrichment.findings ?? []).map((f, i) => (
-                <li key={i} className="text-sm leading-relaxed text-muted">
-                  - {f}
-                </li>
-              ))}
-            </ul>
-            <div className="flex flex-wrap gap-3 pt-1">
-              {(enrichment.links ?? []).map((l, i) => (
-                <a
-                  key={i}
-                  href={l.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate text-xs text-accent/70 underline hover:text-accent"
-                >
-                  {l.title}
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="mt-2 text-sm text-faint">No web research yet.</p>
-        )}
-      </div>
+      <EnrichmentPanel
+        candidateId={c.id}
+        enrichment={enrichment}
+        enriching={enriching}
+        onEnrich={enrich}
+      />
 
       {/* Similar */}
       {similar && (
@@ -435,6 +436,139 @@ function CandidateDetail({ c, onRemove }: { c: Candidate; onRemove: () => void }
         <Action onClick={del} loading={busy === "delete"} danger>Delete</Action>
       </div>
     </div>
+  )
+}
+
+function EnrichmentPanel({
+  candidateId,
+  enrichment,
+  enriching,
+  onEnrich,
+}: {
+  candidateId: string
+  enrichment: Enrichment | null
+  enriching: boolean
+  onEnrich: () => void
+}) {
+  const findings = enrichment?.findings ?? []
+  const claims = enrichment?.confirmed_claims ?? []
+  const links = enrichment?.links ?? []
+  const cachedDate = enrichment?.generated_at?.slice(0, 10)
+  const headingId = `web-enrichment-${candidateId}`
+
+  return (
+    <section aria-labelledby={headingId} className="admin-enrichment">
+      <div className="admin-enrichment-header">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 id={headingId} className="label text-muted">
+              Web enrichment
+            </h4>
+            <span className="admin-beta-badge">Beta</span>
+          </div>
+          <p className="admin-enrichment-copy">
+            Public web research with entity matching against the candidate&apos;s
+            application, LinkedIn, roles, companies, schools, and domains.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onEnrich}
+          disabled={enriching}
+          className="admin-enrichment-button"
+        >
+          {enriching ? "Researching" : enrichment ? "Refresh" : "Run research"}
+        </button>
+      </div>
+
+      <div className="admin-enrichment-caveat">
+        <span className="admin-enrichment-caveat-label">Common-name caveat</span>
+        <span>
+          Results can be sparse or noisy for common names. The AI discards
+          sources that do not logically match, but review links before acting.
+        </span>
+      </div>
+
+      {enriching && (
+        <div className="admin-enrichment-loading" aria-live="polite">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
+
+      {!enriching && enrichment ? (
+        <div className="admin-enrichment-body">
+          {enrichment.notable && (
+            <div className="admin-enrichment-notable">
+              <span className="admin-enrichment-section-label">Most credible signal</span>
+              <p>{enrichment.notable}</p>
+            </div>
+          )}
+
+          <div className={cn("admin-enrichment-grid", claims.length === 0 && "admin-enrichment-grid--single")}>
+            <div>
+              <span className="admin-enrichment-section-label">Findings</span>
+              {findings.length > 0 ? (
+                <ul className="admin-enrichment-list">
+                  {findings.map((finding, i) => (
+                    <li key={i}>{finding}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="admin-enrichment-empty">
+                  No reliable public findings accepted yet.
+                </p>
+              )}
+            </div>
+
+            {claims.length > 0 && (
+              <div>
+                <span className="admin-enrichment-section-label">Corroborated claims</span>
+                <ul className="admin-enrichment-list">
+                  {claims.map((claim, i) => (
+                    <li key={i}>{claim}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-enrichment-sources">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="admin-enrichment-section-label">Accepted sources</span>
+              {cachedDate && <span className="admin-enrichment-date">Cached {cachedDate}</span>}
+            </div>
+            {links.length > 0 ? (
+              <div className="admin-enrichment-source-list">
+                {links.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="admin-enrichment-source"
+                  >
+                    {link.title}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-enrichment-empty">
+                No source links passed the identity match filter.
+              </p>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {!enriching && !enrichment && (
+        <div className="admin-enrichment-empty-state">
+          Run beta research to find public signals, then cache only the sources
+          that appear to match this candidate.
+        </div>
+      )}
+    </section>
   )
 }
 

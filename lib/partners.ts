@@ -1,10 +1,8 @@
 /**
- * Venture partners shown floating on the landing page.
+ * Scouts shown floating on the landing page.
  *
- * TEMPORARY PLACEHOLDERS — swap `image` with a transparent-background PNG
- * (drop the file in /public/partners/) and update the copy when real people
- * are provided. The UI reads everything from this array, so no component
- * changes are needed to go live.
+ * Real portraits can point to local files in /public/partners. If no portrait
+ * is supplied, the component falls back to the generated placeholder sprite.
  */
 export interface Partner {
   name: string
@@ -12,63 +10,96 @@ export interface Partner {
   company: string
   sector: string
   bullets: string[]
-  image?: string // e.g. "/partners/sofia.png" — transparent background
+  image?: string
+  imageKind?: "photo" | "cutout"
+  imagePosition?: string
+  imageSize?: string
+  imageIntrinsicWidth?: number
+  imageIntrinsicHeight?: number
+  cutoutHeight?: string
+  cutoutBottom?: string
+  cutoutX?: string
+  initials?: string
+  spriteSlot?: number
 }
 
 export const PARTNERS: Partner[] = [
   {
-    name: "Yuki Tanaka",
-    location: "Tokyo",
-    company: "Lattice Robotics",
-    sector: "Embodied Intelligence",
+    name: "Placeholder",
+    location: "Global",
+    company: "Talent Network",
+    sector: "Founder Signal",
+    spriteSlot: 0,
     bullets: [
-      "Maps hardware talent across APAC robotics labs.",
-      "Spotted Lattice's founding team during a university spinout.",
-      "Bridges Japanese deep-tech to global capital.",
+      "Reserved for a future scout profile.",
+      "Represents the broader talent surface around Quanta.",
+      "Keeps the edge of the field populated without stealing focus.",
     ],
   },
   {
-    name: "Priya Nair",
-    location: "Bangalore",
-    company: "Aperture Health",
-    sector: "Computational Biology",
+    name: "Balaji Daggupati",
+    location: "United States",
+    company: "UT Dallas Chess",
+    sector: "Chess & Computation",
+    image: "/partners/balaji-daggupati-generated.png",
+    imageKind: "cutout",
+    imageIntrinsicWidth: 564,
+    imageIntrinsicHeight: 819,
+    cutoutHeight: "102%",
+    cutoutBottom: "-4%",
+    cutoutX: "50%",
     bullets: [
-      "Sources operators from the India–US healthtech corridor.",
-      "Former founder; exited a diagnostics company.",
-      "Reads scientific signal before it reaches consensus.",
+      "American chess grandmaster with a computer science path at UT Dallas.",
+      "Reached Grandmaster title as a young player after earning all three norms in 2021.",
+      "Strong pattern-recognition signal from elite competitive chess.",
     ],
   },
   {
-    name: "Marcus Adeyemi",
-    location: "London",
-    company: "Continuum Labs",
-    sector: "Autonomous Agents",
+    name: "Rory Stark",
+    location: "LinkedIn",
+    company: "Prospective Scout",
+    sector: "Venture Signal",
+    image: "/partners/rory-stark-generated.png",
+    imageKind: "cutout",
+    imageIntrinsicWidth: 580,
+    imageIntrinsicHeight: 814,
+    cutoutHeight: "102%",
+    cutoutBottom: "-4%",
+    cutoutX: "50%",
     bullets: [
-      "Surfaces founders out of frontier-research circles.",
-      "Backed three pre-seed teams that later raised competitive Series A rounds.",
-      "Trusted reference inside London's applied-AI community.",
+      "Public profile supplied for inclusion in the scout field.",
+      "Middle-slot placement reserved while a non-auth-walled portrait is sourced.",
+      "Represents prospective venture-scout coverage in the network.",
     ],
   },
   {
-    name: "Sofia Lind",
-    location: "Stockholm",
-    company: "Helix Memory",
-    sector: "AI Compute Systems",
+    name: "Swindar Zhou",
+    location: "Palo Alto",
+    company: "Stanford Bioengineering",
+    sector: "AI Health Systems",
+    image: "/partners/swindar-zhou-generated.png",
+    imageKind: "cutout",
+    imageIntrinsicWidth: 724,
+    imageIntrinsicHeight: 1505,
+    cutoutHeight: "150%",
+    cutoutBottom: "-54%",
+    cutoutX: "50%",
     bullets: [
-      "Flagged from technical founder conversations in Europe.",
-      "Former ML platform lead with long-standing ties to Nordic deep-tech teams.",
-      "Identified Helix Memory before the company entered fundraising mode.",
+      "Stanford bioengineering admit with Notre Dame computer science training.",
+      "Founder and engineering lead across AI health and product-building work.",
+      "Brings founder-market signal from research, startups, and venture communities.",
     ],
   },
   {
-    name: "Daniel Reyes",
-    location: "São Paulo",
-    company: "Meridian Energy",
-    sector: "Climate & Grid",
+    name: "Placeholder",
+    location: "Global",
+    company: "Talent Network",
+    sector: "Scout Coverage",
+    spriteSlot: 4,
     bullets: [
-      "Covers LatAm climate and energy founders.",
-      "Network spans grid operators and frontier energy labs.",
-      "Brought Meridian to the table pre-product.",
+      "Reserved for a future scout profile.",
+      "Frames the right edge of the talent field.",
+      "Can be replaced with a named scout once photography is available.",
     ],
   },
 ]

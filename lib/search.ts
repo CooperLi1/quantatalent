@@ -2,6 +2,7 @@ import "server-only"
 
 import { embed, toVectorLiteral, openai, CHAT_MODEL } from "@/lib/openai"
 import { searchByVector, type CandidateListItem } from "@/lib/dal"
+import { UNTRUSTED_DATA_SYSTEM_RULE, untrustedJson, compactText } from "@/lib/llm-safety"
 
 export interface RankedCandidate extends CandidateListItem {
   reason?: string
@@ -50,11 +51,14 @@ export async function aiRoleMatch(
     messages: [
       {
         role: "system",
-        content: `You match people in an elite talent pool to a hiring need. Given a request and a numbered shortlist, return STRICT JSON {"ranked":[{"i":<index>,"reason":"<≤120 chars why this person fits>"}]} with the best ${topK} candidates, best first. Only include genuinely relevant people; fewer is fine. Reason must reference concrete fit. JSON only.`,
+        content: `You match people in an elite talent pool to a hiring need.\n\n${UNTRUSTED_DATA_SYSTEM_RULE}\n\nGiven a request and a numbered shortlist, return STRICT JSON {"ranked":[{"i":<index>,"reason":"<≤120 chars why this person fits>"}]} with the best ${topK} candidates, best first. Only include genuinely relevant people; fewer is fine. Reason must reference concrete fit. JSON only.`,
       },
       {
         role: "user",
-        content: `Request: ${query}\n\nShortlist:\n${compact.join("\n\n")}`,
+        content: untrustedJson("role_match_request_and_shortlist", {
+          request: query,
+          shortlist: compact,
+        }),
       },
     ],
   })
@@ -70,8 +74,11 @@ export async function aiRoleMatch(
 
   const out: RankedCandidate[] = []
   ranked.forEach((r, idx) => {
-    const c = candidates[r.i]
-    if (c) out.push({ ...c, reason: r.reason, rank: idx + 1 })
+    const i = Number(r.i)
+    if (!Number.isInteger(i) || i < 0 || i >= candidates.length) return
+    const c = candidates[i]
+    const reason = compactText(r.reason, 120)
+    if (c) out.push({ ...c, reason, rank: idx + 1 })
   })
   return out
 }

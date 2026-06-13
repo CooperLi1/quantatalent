@@ -2,26 +2,26 @@ import "server-only"
 
 import { cache } from "react"
 import { redirect } from "next/navigation"
-import { createSupabaseServerClient } from "@/lib/supabase/server"
-import { isAdminEmail } from "@/lib/env"
+import { readAdminSession } from "@/lib/admin-session"
 
 export interface AdminUser {
   id: string
   email: string
+  username: string
 }
 
 /**
  * Returns the authenticated admin, or null. Cached per-request so layouts and
- * pages share one auth check. An authenticated Supabase user is only an admin
- * if their (verified) email is on the ADMIN_EMAILS allowlist.
+ * pages share one auth check.
  */
 export const getAdmin = cache(async (): Promise<AdminUser | null> => {
-  const supabase = await createSupabaseServerClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user?.email || !isAdminEmail(user.email)) return null
-  return { id: user.id, email: user.email }
+  const session = await readAdminSession()
+  if (!session) return null
+  return {
+    id: session.username,
+    email: session.username,
+    username: session.username,
+  }
 })
 
 /** Guard for pages — redirects to login if not an admin. */

@@ -5,7 +5,7 @@ import { auditLog } from "@/lib/dal"
 
 export const runtime = "nodejs"
 
-/** Permanently remove a candidate and their résumé (GDPR / admin action). */
+/** Permanently remove a candidate and their résumé files. */
 export async function POST(req: NextRequest) {
   const admin = await getAdmin()
   if (!admin) return Response.json({ error: "Unauthorized" }, { status: 401 })

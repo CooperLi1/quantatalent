@@ -55,12 +55,15 @@ type FieldErrors = Partial<Record<"fullName" | "email" | "blurb" | "linkedinUrl"
 function JoinModal({ onClose }: { onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [doneTitle, setDoneTitle] = useState("Check your inbox")
+  const [doneMessage, setDoneMessage] = useState(
+    "We sent a confirmation link to your email. Click it to complete your request and enter the community."
+  )
   const [error, setError] = useState<string | null>(null)
   const [errors, setErrors] = useState<FieldErrors>({})
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [parsing, setParsing] = useState(false)
   const dropRef = useRef<HTMLLabelElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -94,20 +97,18 @@ function JoinModal({ onClose }: { onClose: () => void }) {
     if (!f) return setFile(null)
     if (!validateFile(f)) return
     setFile(f)
-    // Free, extraction-only read-back (PDF). Shows the AI already "sees" them.
-    if (f.type === "application/pdf") {
-      setParsing(true)
-      try {
-        const fd = new FormData()
-        fd.append("resume", f)
-        const res = await fetch("/api/parse-resume", { method: "POST", body: fd })
-        const data = await res.json()
-        if (data.preview) setPreview(data.preview)
-      } catch {
-        /* non-fatal */
-      } finally {
-        setParsing(false)
+    if (f.type !== "application/pdf") return
+
+    try {
+      const fd = new FormData()
+      fd.append("resume", f)
+      const res = await fetch("/api/parse-resume", { method: "POST", body: fd })
+      const data = await res.json()
+      if (typeof data.preview === "string" && data.preview.trim()) {
+        setPreview(data.preview.trim())
       }
+    } catch {
+      /* non-fatal */
     }
   }
 
@@ -127,6 +128,13 @@ function JoinModal({ onClose }: { onClose: () => void }) {
         setError(data.message ?? "Something went wrong.")
         return
       }
+      const alreadyConfirmed = data.status === "already_confirmed"
+      setDoneTitle(alreadyConfirmed ? "Already in the community" : "Check your inbox")
+      setDoneMessage(
+        typeof data.message === "string" && data.message.trim()
+          ? data.message
+          : "We sent a confirmation link to your email. Click it to complete your request and enter the community."
+      )
       setDone(true)
     } catch {
       setError("Network error. Please try again.")
@@ -158,10 +166,9 @@ function JoinModal({ onClose }: { onClose: () => void }) {
             <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-accent/30 text-accent">
               ✓
             </div>
-            <h2 className="text-xl font-medium text-foreground">Check your inbox</h2>
+            <h2 className="text-xl font-medium text-foreground">{doneTitle}</h2>
             <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted">
-              We sent a confirmation link to your email. Click it to complete your
-              request and enter the community.
+              {doneMessage}
             </p>
           </div>
         ) : (
@@ -233,7 +240,6 @@ function JoinModal({ onClose }: { onClose: () => void }) {
                       <span className={cn("join-dropzone-value", file && "is-selected")}>
                         {file ? file.name : "PDF or Word"}
                       </span>
-                      {parsing && <span className="join-dropzone-status">Reading…</span>}
                       {preview && (
                         <span className="join-dropzone-preview">
                           Read you as: {preview}

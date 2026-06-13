@@ -9,6 +9,9 @@ Gotchas and decisions worth remembering, captured during the build.
   **async** (await them). `after()` from `next/server` schedules work to run
   after the response (used to ingest a candidate without blocking the reply).
 - Route handlers are **uncached** by default — good for our mutation endpoints.
+- `ImageResponse`/Satori is stricter than browser React: every `div` with
+  multiple child nodes needs an explicit `display` (`flex`, `contents`, or
+  `none`) or `next build` will fail while prerendering OG/icon routes.
 
 ## Supabase
 - The **service-role key is not exposed** through the management tooling — it
@@ -45,11 +48,6 @@ Gotchas and decisions worth remembering, captured during the build.
 - The Resend **testing domain** only delivers to the account owner's address
   until a domain is verified. With no key set, we log the confirm link instead
   so the flow is testable locally.
-- Supabase SSR magic-link callbacks in Route Handlers should bind cookie writes
-  to the exact redirect `NextResponse`; relying on a generic cookie helper can
-  succeed at `exchangeCodeForSession` while returning a redirect with no auth
-  cookies. Admin-generated Supabase links may use URL fragments and are not a
-  valid substitute for testing the PKCE email link path.
 
 ## Cost control
 - Keep AI search cheap with **retrieve-then-rank**: vector shortlist (one

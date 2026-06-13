@@ -46,12 +46,22 @@ export const env = {
   get braveKey() {
     return optional("BRAVE_SEARCH_API_KEY")
   },
-  // Admin allowlist (comma-separated emails)
-  get adminEmails(): string[] {
-    return (process.env.ADMIN_EMAILS || "")
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean)
+  // Admin username/password auth.
+  get adminUsername() {
+    return optional("ADMIN_USERNAME")?.trim()
+  },
+  get adminPassword() {
+    return optional("ADMIN_PASSWORD")
+  },
+  get adminPasswordHash() {
+    return optional("ADMIN_PASSWORD_HASH")
+  },
+  get adminSessionSecret() {
+    return (
+      optional("ADMIN_SESSION_SECRET") ||
+      optional("CRON_SECRET") ||
+      required("SUPABASE_SERVICE_ROLE_KEY")
+    )
   },
   // Cron / internal job auth
   get cronSecret() {
@@ -67,8 +77,3 @@ export const env = {
     )
   },
 } as const
-
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false
-  return env.adminEmails.includes(email.trim().toLowerCase())
-}

@@ -1,10 +1,19 @@
 "use client"
 
+import Image from "next/image"
 import { useState, type CSSProperties } from "react"
 import { PARTNERS, type Partner } from "@/lib/partners"
 import { cn } from "@/lib/utils"
 
-type PortraitStyle = CSSProperties & { "--portrait-slot": string }
+type PortraitStyle = CSSProperties & {
+  "--portrait-image"?: string
+  "--portrait-position"?: string
+  "--portrait-size"?: string
+  "--portrait-slot"?: string
+  "--portrait-height"?: string
+  "--portrait-bottom"?: string
+  "--portrait-x"?: string
+}
 type DetailStyle = CSSProperties & {
   "--detail-left": string
   "--detail-top": string
@@ -39,7 +48,16 @@ function Portrait({
   onActivate: () => void
   onClear: () => void
 }) {
-  const portraitStyle: PortraitStyle = { "--portrait-slot": String(index) }
+  const portraitStyle: PortraitStyle = partner.image
+    ? {
+        "--portrait-image": `url("${partner.image}")`,
+        "--portrait-position": partner.imagePosition ?? "50% 24%",
+        "--portrait-size": partner.imageSize ?? "cover",
+        "--portrait-height": partner.cutoutHeight ?? "96%",
+        "--portrait-bottom": partner.cutoutBottom ?? "0%",
+        "--portrait-x": partner.cutoutX ?? "50%",
+      }
+    : { "--portrait-slot": String(partner.spriteSlot ?? index) }
 
   return (
     <button
@@ -58,10 +76,26 @@ function Portrait({
       )}
     >
       <span className="partner-photo-crop" aria-hidden>
-        <span
-          className="partner-photo-strip"
-          style={portraitStyle}
-        />
+        {partner.image && partner.imageKind === "cutout" ? (
+          <Image
+            src={partner.image}
+            alt=""
+            width={partner.imageIntrinsicWidth ?? 900}
+            height={partner.imageIntrinsicHeight ?? 1300}
+            sizes="12vw"
+            className="partner-photo-cutout"
+            style={portraitStyle}
+          />
+        ) : partner.image ? (
+          <span
+            className="partner-photo-image"
+            style={portraitStyle}
+          />
+        ) : partner.initials ? (
+          <span className="partner-photo-initials">{partner.initials}</span>
+        ) : (
+          <span className="partner-photo-strip" style={portraitStyle} />
+        )}
       </span>
     </button>
   )
@@ -80,7 +114,7 @@ export function Partners() {
       <div className="partners-portraits" aria-label="Featured scouts">
         {PARTNERS.map((p, i) => (
           <Portrait
-            key={p.name}
+            key={`${p.name}-${i}`}
             partner={p}
             index={i}
             active={active === i}

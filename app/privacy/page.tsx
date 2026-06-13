@@ -8,43 +8,46 @@ export const metadata: Metadata = {
 
 const sections: { h: string; body: string[] }[] = [
   {
-    h: "What we collect",
+    h: "Information you share",
     body: [
       "When you request to join, we collect the information you submit: your full name, email address, a short blurb about your background, and, optionally, a LinkedIn URL and a résumé file.",
-      "We also record minimal technical metadata (IP address, browser user-agent, timestamps) for security, abuse prevention, and rate limiting.",
+      "We also collect basic request details, such as timestamps and information needed to help prevent spam, abuse, and repeated automated submissions.",
     ],
   },
   {
-    h: "How we use it",
+    h: "How we use information",
     body: [
       "We send a confirmation email to verify your address. Your profile is only made visible to the Quanta venture team after you confirm.",
-      "We use AI to generate a concise summary and structured tags from the information you provide, to help the team understand your background. This analysis is derived only from what you submit.",
-      "With your participation in the community, the team may research publicly available information about you to corroborate your background. This uses only public web sources.",
+      "We use the information you provide to understand your background, evaluate whether there may be a fit for the community, and help the venture team review confirmed profiles.",
+      "If you attach a résumé, we may extract text from it to create a short preview for you and to help summarize your profile.",
     ],
   },
   {
-    h: "Email",
+    h: "AI and public information",
     body: [
-      "Transactional email (confirmation and any direct outreach) is sent via Resend. We log delivery status to operate the service. We do not sell your data or send marketing email.",
+      "We may use AI tools to create concise summaries and labels from your submission and optional résumé, so the team can review relevant backgrounds more quickly.",
+      "After you confirm, the team may use public web sources, such as pages returned by search engines or your LinkedIn profile, to help corroborate details you shared. Public research can be imperfect, especially for common names, so it is treated as review material rather than an automatic decision.",
     ],
   },
   {
-    h: "Storage & security",
+    h: "Email and outreach",
     body: [
-      "Data is stored in a private Supabase (PostgreSQL) database with row-level security enabled; application access is mediated server-side. Résumés are kept in a private storage bucket and are never publicly accessible.",
-      "Confirmation links are single-use, time-limited, and only a cryptographic hash of each token is stored.",
+      "We use email to send confirmation links and, if there is a potential fit, direct outreach from the Quanta team.",
+      "We do not sell your information or send unrelated marketing email from this request.",
     ],
   },
   {
-    h: "Retention",
+    h: "Access and sharing",
     body: [
-      "Unconfirmed requests are automatically purged after 14 days. Confirmed profiles are retained as part of the community until you ask us to remove them.",
+      "Unconfirmed profiles are not shown to the venture team for review. Confirmed profiles are visible to authorized Quanta team members reviewing the community.",
+      "We use service providers to operate the site, send email, store submissions, analyze profiles, and perform public web research.",
     ],
   },
   {
-    h: "Your rights",
+    h: "Retention and security",
     body: [
-      "You can request a copy of your data or its deletion at any time by emailing privacy@quantaventures.ai. We will remove your profile and associated files on request.",
+      "Unconfirmed requests are automatically purged after 14 days. Confirmed profiles are retained as part of the talent community unless removed by the team.",
+      "We use reasonable safeguards to protect submitted information, including restricted team access, private résumé storage, and time-limited confirmation links.",
     ],
   },
 ]

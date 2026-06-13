@@ -44,8 +44,10 @@ function render(o: ConfirmOutcome) {
             {o.status === "confirmed" ? "You're in." : "Already confirmed."}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            {o.fullName ? `${o.fullName.split(" ")[0]}, your` : "Your"} email is
-            confirmed. You&apos;re now part of the community we surface to the venture team.
+            {o.fullName
+              ? `${o.fullName.split(" ")[0]}, your email is confirmed.`
+              : "Your email is confirmed."}{" "}
+            You&apos;re now part of the community we surface to the venture team.
           </p>
           {o.summary && (
             <div className="mt-8 rounded-xl border border-hairline bg-[#080809] p-5 text-left">
